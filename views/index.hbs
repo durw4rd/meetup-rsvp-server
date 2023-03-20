@@ -1,0 +1,87 @@
+<h1>{{title}}</h1>
+<p><b>Server time (UTC):</b> {{serverTime}}</p>
+<p><b>Amsterdam time:</b> {{localTime}}</p>
+<hr>
+<form id="myForm" onsubmit="return false">
+    <label for="user-name">Select user:</label>
+    <select name="user-name" id="user-name" required>
+        <option value="default">User name</option>
+        <option value="Michalaki">Michalaki</option>
+        <option value="Adriko">Adriko</option>
+    </select>
+
+    <br>
+
+    <label for="event-date">Select event:</label>
+    <select name="event-date" id="event-date" required>
+        <option value="default">Select event</option>
+        {{!-- <option value="2023-03-20">Mon, March 20, 2023</option>
+        <option value="2023-03-22">Wed, March 22, 2023</option> --}}
+        <option value="2023-03-23">Thu, March 23, 2023</option>
+        <option value="2023-03-27">Mon, March 27, 2023</option>
+        <option value="2023-03-29">Wed, March 29, 2023</option>
+        <option value="2023-04-03">Mon, April 03, 2023</option>
+        <option value="2023-04-05">Wed, April 05, 2023</option>
+    </select>
+
+    <br>
+
+    <label for="plus-one">Do you wanna bring someone along?</label>
+    <input type="checkbox" name="plus-one" id="plus-one" value="true">
+    +1
+
+    <br>
+
+    <label for="date-time">Date and Time to execute the:</label>
+    <input type="datetime-local" id="date-time" name="date-time" timezone="CET" required>
+
+    <br>
+
+    <button type="submit" id="myFormSubmitButton" onclick="submitForm()">Répondez s'il vous plaît</button>
+</form>
+
+<script>
+    function submitForm() {
+
+        const form = document.getElementById('myForm');
+        const submitBtn = document.getElementById('myFormSubmitButton');
+
+        const userName = document.getElementById('user-name').value;
+        const eventDate = document.getElementById('event-date').value;
+        const dateTime = document.getElementById('date-time').value;
+        const plusOne = document.getElementById('plus-one').checked;
+
+        console.log(userName, eventDate, dateTime, plusOne);
+        console.log(typeof userName, typeof eventDate, typeof dateTime, typeof plusOne);
+        
+        if (dateTime !== "") {
+            fetch('/schedule-job', {
+                method: 'POST',
+                body: JSON.stringify({
+                    userName,
+                    eventDate,
+                    dateTime,
+                    plusOne
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to send data to server.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data sent successfully:', data);
+                })
+                .finally(() => {
+                    form.reset();
+                })
+                .catch(error => {
+                    console.error('Error sending data:', error);
+                });
+        }
+    };
+</script>

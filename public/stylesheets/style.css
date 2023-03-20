@@ -1,0 +1,30 @@
+body {
+  padding: 10px;
+  font: 2em "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+form {
+  line-height: 1.5em;
+}
+
+select {
+  font-size: 1em;
+}
+
+button {
+  font-size: 1.5em;
+  margin-top: 1.5em;
+}
+
+#plus-one {
+  width: 2em;
+  height: 2em;
+}
+
+#date-time {
+  font-size: 1em;
+}
