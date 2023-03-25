@@ -67,7 +67,7 @@ router.get('/', function(req, res, next) {
         return cookieHeader;
     }
 
-    const getUpcomingEvents = async (numberEvents = 6) => {
+    const getUpcomingEvents = async (numberEvents = 9) => {
         try {
             const response = await axios.post("https://www.meetup.com/gql", createRequestBody(numberEvents), {
                 headers: {
