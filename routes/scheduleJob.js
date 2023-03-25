@@ -193,8 +193,6 @@ router.post('/', function(req, res, next) {
 
   res.json({ message: 'Form data received and scheduled.' });
 
-  // res.render('index', { title: 'Meetup RSVP Automator' });
 });
 
 module.exports = router;
-

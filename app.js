@@ -5,9 +5,13 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-// var eventRsvp = require('./routes/eventRsvp');
 var scheduleRouter = require('./routes/scheduleJob');
+
+var usersRouter = require('./routes/users');
+var listEventsRouter = require('./routes/listEvents');
+var eventRSVPRouter = require('./routes/eventRSVP');
+var pendingJobsRouter = require('./routes/pendingJobs');
+var serverTimeRouter = require('./routes/serverTime');
 
 var app = express();
 
@@ -21,11 +25,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-// app.use('/eventrsvp', eventRsvp);
-app.use('/schedule-job', scheduleRouter);
+app.use('/', indexRouter); // Using for now as the app UI, might deprecate once the React front-end is set up
+app.use('/schedule-job', scheduleRouter); // Works with the current BE-only setup. To be replaced by /eventrsvp endpoint
 
+app.use('/users', usersRouter); // TODO: Return the list of users configured on back-end
+app.use('/listEvents', listEventsRouter); // TODO: Return an array of objects, each representing one upcoming event
+app.use('/eventRSVP', eventRSVPRouter); // TODO: RSVP to a selected event (replica of schedule-job)
+app.use('/pendingJobs', pendingJobsRouter); // TODO: Return the list of currently pending (cron) jobs
+app.use('/serverTime', serverTimeRouter); // TODO: Return the server time
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
