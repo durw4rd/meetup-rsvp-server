@@ -3,8 +3,8 @@ var router = express.Router();
 const axios = require('axios');
 const { getUserByName } = require('../public/javascripts/utils/users.js');
 
-router.get('/', function(req, res, next) {
-    const { numberEvents } = req.body;
+router.get('/:numberEvents', function(req, res, next) {
+    const { numberEvents } = req.params;
     
     const createRequestBody = (numberEvents) => {
         const bodyObject = {
@@ -87,34 +87,36 @@ router.get('/', function(req, res, next) {
             // console.log(response.data.data.groupByUrlname.upcomingEvents.edges); // array of event objects
             const upcomingEvents = response.data.data.groupByUrlname.upcomingEvents.edges;
             const eventsFormatted = upcomingEvents.map((event) => {
-                const weekDays = ['Sunday', 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-                const eventDateObj = new Date(event.node.dateTime);
+                const weekDays = ['Sun', 'Mon','Tue','Wed','Thu','Fri','Sat'];
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const eventDateObj = new Date(event.node.dateTime); // this could be used for scheduling I think
                 const eventDay = weekDays[eventDateObj.getDay()];
                 const eventDate = eventDateObj.getDate();
-                const eventMonth = eventDateObj.getMonth() + 1;
+                const eventMonth = months[eventDateObj.getMonth()];
                 const eventTime = eventDateObj.getHours();
-                // const eventTimeUTC = eventDateObj.getUTCHours();
-                const rsvpTime = new Date(eventDateObj).setHours(eventTime); // TO CHECK: I think I'll need to add one hour here
-                // console.log(`${eventDay} | ${eventDate}/${eventMonth} | ${eventTime}hrs CET | ${eventTimeUTC}hrs UTC | ${new Date(rsvpTime)}`);
-
+              
                 return ({
-                    eventDateHuman: `${eventDay} | ${eventDate}/${eventMonth} | ${eventTime}:00hrs CE(S)T`,
-                    rsvpTime: new Date(rsvpTime), 
-                    eventId: event.node.id,
-                    rsvpState: event.node.rsvpState,
-                    going: event.node.going
+                  eventDateHuman: `${eventDay}, ${eventDate} ${eventMonth}, ${eventTime}:00 UTC`,
+                  eventDateObj: eventDateObj,
+                  eventId: event.node.id,
+                  rsvpState: event.node.rsvpState,
+                  going: event.node.going
                 })
             });
 
             // console.log(eventsFormatted);
 
+            // res.append('Access-Control-Allow-Origin', ['*']);
+            // res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+            // res.append('Access-Control-Allow-Headers', 'Content-Type');
+            
             res.send(eventsFormatted);
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error:', error.response.status, error.response.statusText);
         }
     }
 
-    getUpcomingEvents(numberEvents);
+    getUpcomingEvents(parseInt(numberEvents));
 });
 
 module.exports = router;

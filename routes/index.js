@@ -7,7 +7,7 @@ router.get('/', function(req, res, next) {
   const serverTimeFormated = serverTime.toLocaleString('nl-NL');
   const localTimeFormated = serverTime.toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam'});
 
-  res.render('index', { title: 'Meetup RSVP Automator', serverTime: serverTimeFormated, localTime: localTimeFormated });
+  res.render('index', { title: 'RSVP Server', serverTime: serverTimeFormated, localTime: localTimeFormated });
 });
 
 module.exports = router;
