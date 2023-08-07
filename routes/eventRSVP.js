@@ -18,14 +18,14 @@ const users = {
     }
 };
 
-function createRequestBody(eventId, plusOne, user) {
+function createRequestBody(eventId, extras, user) {
 
   const bodyObject = {
     operationName: 'rsvpToEvent',
     variables: {
       input: {
         eventId: eventId,
-        guestsCount: +plusOne,
+        guestsCount: +extras,
         response: "YES",
         proEmailShareOptin: false,
         proSurveyAnswers: []
@@ -47,7 +47,7 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
 
     // Get the form data from the request body
-    const { eventId, eventDateObj, userName, plusOne } = req.body;
+    const { eventId, eventDateObj, userName, extras } = req.body;
 
     // Use the user name to get the user details
     const user = users[userName];
@@ -59,19 +59,24 @@ router.post('/', function(req, res, next) {
     const eventDate = new Date(eventDateObj);
     const rsvpDate = eventDate.setDate(eventDate.getDate() - 7);
     const humanDate = new Date(rsvpDate);
-  
-    console.log(`RSVP to event ID: ${eventId} on behalf of ${userName}. It will execute at ${humanDate}!`);
+
+    const weekDays = ['Sun', 'Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // 'Request received' confirmation message
+    console.log(`RSVP to event ID: ${eventId} on behalf of ${userName} and ${extras} of his extra buddies. It will execute at ${humanDate}!`);
   
     // Schedule the cron job
-    const jobName = `${userName} | RSVP time: ${humanDate}`;
+    const jobName = `${userName} | ${weekDays[humanDate.getDay()]}, ${humanDate.getDate()} ${months[humanDate.getMonth()]} | Extras: ${extras}`;
   
     schedule.scheduleJob(jobName, rsvpDate, async () => { // run at submitted time
     // schedule.scheduleJob('*/03 * * * * *', async () => { // run every three seconds
 
-        console.log(`Responding to ${eventId} for ${userName}.`);
+        // 'This are happening' message
+        console.log(`Responding to ${eventId} for ${userName} and ${extras} extra buddies.`);
 
         try {
-          const response = await axios.post("https://www.meetup.com/gql", createRequestBody(eventId, plusOne, user), {
+          const response = await axios.post("https://www.meetup.com/gql", createRequestBody(eventId, extras, user), {
           headers: {
             "accept": "*/*",
             "accept-language": "en-GB,en;q=0.9",

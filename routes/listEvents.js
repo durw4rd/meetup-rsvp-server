@@ -5,7 +5,13 @@ const { getUserByName } = require('../public/javascripts/utils/users.js');
 
 router.get('/:numberEvents', function(req, res, next) {
     const { numberEvents } = req.params;
-    
+
+    // For v2
+    const userName = req.query.userName || "Michal"; // OR is for for backwards compatibility
+    if (getUserByName(userName) === undefined) {
+      res.send("Unknown user");
+    } 
+  
     const createRequestBody = (numberEvents) => {
         const bodyObject = {
             operationName: 'getUpcomingEvents',
@@ -62,7 +68,7 @@ router.get('/:numberEvents', function(req, res, next) {
     };
 
     const setCookieHeader = () => {
-        const userDetails = getUserByName('Michal');
+        const userDetails = getUserByName(userName);
         const cookieHeader = userDetails.cookies;
         return cookieHeader;
     }
@@ -112,7 +118,7 @@ router.get('/:numberEvents', function(req, res, next) {
             
             res.send(eventsFormatted);
         } catch (error) {
-            console.error('Error:', error.response.status, error.response.statusText);
+            console.error('Error:', error.response && error.response.status, error.response && error.response.statusText);
         }
     }
 
