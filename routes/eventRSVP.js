@@ -2,24 +2,23 @@ var express = require('express');
 var router = express.Router();
 const schedule = require('node-schedule');
 const axios = require('axios');
+const users = require('../public/javascripts/utils/userList.js');
+const getLDClient = require('../public/javascripts/utils/launchDarkly.js'); 
 
-const mcookie = process.env['mcookie'];
-const acookie = process.env['acookie'];
 const sha256 = process.env['sha256'];
 
-const users = {
-    Michalaki: {
-      name: 'Michal',
-      cookies: mcookie,
-    },
-    Adriko: {
-      name: 'Andreas',
-      cookies: acookie,
-    }
-};
+// This one actually isn't used anywhere (I think)
+router.get('/', function(req, res, next) {
+    res.send("Hello from server event RSVP!");
+});
 
+/**
+  * Form the payload to be sent to Meetup's backend to RSVP to an event
+  * @param {string} eventId - The ID of the event to RSVP for
+  * @param {integer} extras - The number of extra guests to add to the RSVP
+  * @param {string} user - The name of the user on whose behalf should the RSVP be made
+*/
 function createRequestBody(eventId, extras, user) {
-
   const bodyObject = {
     operationName: 'rsvpToEvent',
     variables: {
@@ -39,11 +38,33 @@ function createRequestBody(eventId, extras, user) {
   return bodyString;
 };
 
-router.get('/', function(req, res, next) {
+// Checking the LD flag state for controlling enabling/disabling app testing mode
+let testMode = false;
+(async function checkTestMode() {
+  const LDclient = await getLDClient();
 
-    res.send("Hello from server event RSVP!");
-});
+  LDclient.on('update', () => {
+    checkTestMode();
+  });
 
+  const LDcontext = {
+    kind: 'user',
+    key: 'defaultUser',
+    anonymous: true,
+  }
+
+  try {
+    testMode = await LDclient.variation('test-mode', LDcontext, false);
+    console.log(`Test Mode is: ${testMode}`);
+    return testMode;
+    
+  } catch(e) {
+    console.log(e);
+  }
+})();
+
+// This is where the magic happens
+// Probably could use a little refactoring/cleanup
 router.post('/', function(req, res, next) {
 
     // Get the form data from the request body
@@ -57,17 +78,25 @@ router.post('/', function(req, res, next) {
     }
 
     const eventDate = new Date(eventDateObj);
-    const rsvpDate = eventDate.setDate(eventDate.getDate() - 7);
+
+    // Setting the RSVP date in case of test mode ON
+    let rsvpDate = false;
+    if (!!testMode) {
+      rsvpDate = new Date(Date.now() + 5000);
+    } else {
+      rsvpDate = eventDate.setDate(eventDate.getDate() - 7);
+    }
+  
     const humanDate = new Date(rsvpDate);
 
     const weekDays = ['Sun', 'Mon','Tue','Wed','Thu','Fri','Sat'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
+  
     // 'Request received' confirmation message
-    console.log(`RSVP to event ID: ${eventId} on behalf of ${userName} and ${extras} of his extra buddies. It will execute at ${humanDate}!`);
+    console.log(`RSVP to event ID: ${eventId} on behalf of ${userName} and ${extras} of his extra buddies. It will execute at ${testMode ? 'immediately' : humanDate}!`);
   
     // Schedule the cron job
-    const jobName = `${userName} | ${weekDays[humanDate.getDay()]}, ${humanDate.getDate()} ${months[humanDate.getMonth()]} | Extras: ${extras}`;
+    const jobName = `${userName} | ${testMode ? 'TEST MODE' : `${weekDays[humanDate.getDay()]}, ${humanDate.getDate()} ${months[humanDate.getMonth()]}`} | Extras: ${extras}`;
   
     schedule.scheduleJob(jobName, rsvpDate, async () => { // run at submitted time
     // schedule.scheduleJob('*/03 * * * * *', async () => { // run every three seconds
@@ -115,10 +144,6 @@ router.post('/', function(req, res, next) {
     console.log(Object.keys(jobList).length)
     // console.log(jobList[0].pendingInvocations);
 
-    // res.append('Access-Control-Allow-Origin', ['*']);
-    // res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    // res.append('Access-Control-Allow-Headers', 'Content-Type');
-  
     res.json({ message: 'Form data received and scheduled.' });
 });
 

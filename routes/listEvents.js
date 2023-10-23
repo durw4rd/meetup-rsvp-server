@@ -1,15 +1,16 @@
 var express = require('express');
 var router = express.Router();
 const axios = require('axios');
-const { getUserByName } = require('../public/javascripts/utils/users.js');
+const users = require('../public/javascripts/utils/userList.js');
 
 router.get('/:numberEvents', function(req, res, next) {
     const { numberEvents } = req.params;
 
-    // For v2
-    const userName = req.query.userName || "Michal"; // OR is for for backwards compatibility
-    if (getUserByName(userName) === undefined) {
+    const userName = req.query.userName || "Michal"; // OR is for for backwards compatibility (WHERE/WHY?)
+    if (users[userName] === undefined) {
       res.send("Unknown user");
+      console.log('Received a request for unknown user name!');
+      return
     } 
   
     const createRequestBody = (numberEvents) => {
@@ -68,8 +69,8 @@ router.get('/:numberEvents', function(req, res, next) {
     };
 
     const setCookieHeader = () => {
-        const userDetails = getUserByName(userName);
-        const cookieHeader = userDetails.cookies;
+        const userDetails = users[userName];
+        const cookieHeader = userDetails.cookies
         return cookieHeader;
     }
 
@@ -94,7 +95,7 @@ router.get('/:numberEvents', function(req, res, next) {
             const upcomingEvents = response.data.data.groupByUrlname.upcomingEvents.edges;
             const eventsFormatted = upcomingEvents.map((event) => {
                 const weekDays = ['Sun', 'Mon','Tue','Wed','Thu','Fri','Sat'];
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];  
                 const eventDateObj = new Date(event.node.dateTime); // this could be used for scheduling I think
                 const eventDay = weekDays[eventDateObj.getDay()];
                 const eventDate = eventDateObj.getDate();
@@ -109,16 +110,10 @@ router.get('/:numberEvents', function(req, res, next) {
                   going: event.node.going
                 })
             });
-
-            // console.log(eventsFormatted);
-
-            // res.append('Access-Control-Allow-Origin', ['*']);
-            // res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-            // res.append('Access-Control-Allow-Headers', 'Content-Type');
             
             res.send(eventsFormatted);
         } catch (error) {
-            console.error('Error:', error.response && error.response.status, error.response && error.response.statusText);
+            console.error('Error:', error, error.response && error.response.status, error.response && error.response.statusText);
         }
     }
 

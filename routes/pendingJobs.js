@@ -7,7 +7,7 @@ router.get('/', function(req, res, next) {
     const jobList = schedule.scheduledJobs;
     const jobNames = Object.keys(jobList);
     // console.log(Object.keys(jobList).length);
-    // console.log(Object.keys(jobList));
+    console.log(Object.keys(jobList));
   
     res.json({ 
       message: 'Listing pending jobs.', 
