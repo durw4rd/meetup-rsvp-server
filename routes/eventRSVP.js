@@ -40,18 +40,20 @@ function createRequestBody(eventId, extras, user) {
 
 // Checking the LD flag state for controlling enabling/disabling app testing mode
 let testMode = false;
+let timeOffset = 0;
+
+const LDcontext = {
+  kind: 'server-app',
+  key: 'replit',
+  name: 'Replit Server App'
+};
+
 (async function checkTestMode() {
   const LDclient = await getLDClient();
 
-  LDclient.on('update', () => {
+  LDclient.on('update:test-mode', () => {
     checkTestMode();
   });
-
-  const LDcontext = {
-    kind: 'user',
-    key: 'defaultUser',
-    anonymous: true,
-  }
 
   try {
     testMode = await LDclient.variation('test-mode', LDcontext, false);
@@ -62,6 +64,23 @@ let testMode = false;
     console.log(e);
   }
 })();
+
+(async function checkTimeOffset() {
+  const LDclient = await getLDClient();
+
+  LDclient.on('update:time-offset', () => {
+      checkTimeOffset();
+  });
+
+  try {
+    timeOffset = await LDclient.variation('time-offset', LDcontext, 0);
+    console.log(`Time offset is: ${timeOffset}`);
+    return timeOffset;
+
+  } catch(e) {
+    console.log(e);
+  }
+})(); 
 
 // This is where the magic happens
 // Probably could use a little refactoring/cleanup
@@ -84,7 +103,10 @@ router.post('/', function(req, res, next) {
     if (!!testMode) {
       rsvpDate = new Date(Date.now() + 5000);
     } else {
-      rsvpDate = eventDate.setDate(eventDate.getDate() - 7);
+      eventDate.setDate(eventDate.getDate() - 7)
+      eventDate.setHours(eventDate.getHours() + timeOffset);
+      rsvpDate = eventDate;
+      console.log(rsvpDate)
     }
   
     const humanDate = new Date(rsvpDate);
@@ -96,12 +118,12 @@ router.post('/', function(req, res, next) {
     console.log(`RSVP to event ID: ${eventId} on behalf of ${userName} and ${extras} of his extra buddies. It will execute at ${testMode ? 'immediately' : humanDate}!`);
   
     // Schedule the cron job
-    const jobName = `${userName} | ${testMode ? 'TEST MODE' : `${weekDays[humanDate.getDay()]}, ${humanDate.getDate()} ${months[humanDate.getMonth()]}`} | Extras: ${extras}`;
+    const jobName = `${userName} | ${testMode ? 'TEST MODE' : `${weekDays[humanDate.getDay()]}, ${humanDate.getDate()} ${months[humanDate.getMonth()]}`} | ${rsvpDate.getHours()}:00 UTC | Extras: ${extras}`;
   
     schedule.scheduleJob(jobName, rsvpDate, async () => { // run at submitted time
     // schedule.scheduleJob('*/03 * * * * *', async () => { // run every three seconds
 
-        // 'This are happening' message
+        // 'This is happening' message
         console.log(`Responding to ${eventId} for ${userName} and ${extras} extra buddies.`);
 
         try {
