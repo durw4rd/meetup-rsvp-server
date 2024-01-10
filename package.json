@@ -19,6 +19,11 @@
     "morgan": "~1.9.1",
     "node-fetch": "^3.3.0",
     "node-schedule": "^2.1.1",
-    "nodemon": "^2.0.21"
+    "nodemon": "^2.0.21",
+    "minimist": ">=0.2.4"
+  },
+  "devDependencies": {
+    "minimist": ">=0.2.4",
+    "handlebars": ">=4.7.7"
   }
 }
