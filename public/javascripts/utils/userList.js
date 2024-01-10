@@ -1,6 +1,6 @@
-const mcookie = process.env['mcookie'];
-const acookie = process.env['acookie'];
-const sha256 = process.env['sha256'];
+const mcookie = process.env.M_COOKIE;
+const acookie = process.env.A_COOKIE;
+// const sha256 = process.env.SHA_265;
 
 const users = {
     Michalaki: {

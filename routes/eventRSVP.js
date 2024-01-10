@@ -5,7 +5,7 @@ const axios = require('axios');
 const users = require('../public/javascripts/utils/userList.js');
 const getLDClient = require('../public/javascripts/utils/launchDarkly.js'); 
 
-const sha256 = process.env['sha256'];
+const sha256 = process.env.SHA_265;
 
 // This one actually isn't used anywhere (I think)
 router.get('/', function(req, res, next) {
