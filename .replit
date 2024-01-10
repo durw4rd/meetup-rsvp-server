@@ -1,3 +1,0 @@
-hidden = [".config", "package-lock.json"]
-run = "npm run start"
-entrypoint = "app.js"
