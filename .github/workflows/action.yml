@@ -13,7 +13,6 @@ jobs:
         - uses: actions/checkout@v3
           with:
             fetch-depth: 11 # This value must be set if the lookback configuration option is not disabled for find-code-references. Read more: https://github.com/launchdarkly/ld-find-code-refs#searching-for-unused-flags-extinctions
-            token: ${{ secrets.GH_WORKFLOW_TOKEN }}
         - name: LaunchDarkly Code References
           uses: launchdarkly/find-code-references@v2.11.4
           with:
