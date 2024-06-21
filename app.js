@@ -30,6 +30,7 @@ app.use('/listEvents', listEventsRouter); // GET -> returns a list of upcoming M
 app.use('/eventRSVP', eventRSVPRouter); // POST -> schedules RSVP for a selected event
 app.use('/pendingJobs', pendingJobsRouter); // GET -> returns the list of currently pending cron jobs | DELETE -> deletes the selected pending cron job
 app.use('/serverTime', serverTimeRouter); // (not used) GET -> returns the server time
+app.use('/status', (req, res) => res.send('Server is running!'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
