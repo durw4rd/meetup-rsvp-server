@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const schedule = require('node-schedule');
-const axios = require('axios');
+import schedule from 'node-schedule';
+import axios from 'axios';
 
 router.get('/', function(req, res, next) {
     const jobList = schedule.scheduledJobs;
@@ -28,4 +28,4 @@ router.post('/delete', function(req, res, next) {
     });
 });
 
-module.exports = router;
+export default router;

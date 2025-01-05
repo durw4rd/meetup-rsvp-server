@@ -1,9 +1,9 @@
-var express = require('express');
-var router = express.Router();
-const schedule = require('node-schedule');
-const axios = require('axios');
-const users = require('../public/javascripts/utils/userList.js');
-const getLDClient = require('../public/javascripts/utils/launchDarkly.js'); 
+import express from 'express';
+const router = express.Router();
+import schedule from 'node-schedule';
+import axios from 'axios';
+import users from '../public/javascripts/utils/userList.js';
+import getLDClient from '../public/javascripts/utils/launchDarkly.js';
 
 const sha256 = process.env.SHA_265;
 
@@ -169,4 +169,4 @@ router.post('/', function(req, res, next) {
     res.json({ message: 'Form data received and scheduled.' });
 });
 
-module.exports = router;
+export default router;

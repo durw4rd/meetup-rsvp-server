@@ -1,7 +1,7 @@
-var express = require('express');
-var router = express.Router();
-const axios = require('axios');
-const users = require('../public/javascripts/utils/userList.js');
+import express from 'express';
+const router = express.Router();
+import axios from 'axios';
+import users from '../public/javascripts/utils/userList.js';
 
 router.get('/:numberEvents', function(req, res, next) {
     const { numberEvents } = req.params;
@@ -120,4 +120,4 @@ router.get('/:numberEvents', function(req, res, next) {
     getUpcomingEvents(parseInt(numberEvents));
 });
 
-module.exports = router;
+export default router;

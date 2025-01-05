@@ -1,6 +1,6 @@
-var express = require('express');
-var router = express.Router();
-const dotenv = require("dotenv");
+import express from 'express';
+const router = express.Router();
+import dotenv from 'dotenv';
 dotenv.config();
 
 /* GET home page. */
@@ -12,4 +12,10 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'RSVP Server', serverTime: serverTimeFormated, localTime: localTimeFormated });
 });
 
-module.exports = router;
+router.get('/current-time', (req, res) => {
+  const serverTime = new Date().toLocaleString('nl-NL');
+  const localTime = new Date().toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam' });
+  res.json({ serverTime, localTime });
+});
+
+export default router;

@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+import express from 'express';
+const router = express.Router();
 
 router.get('/', function(req, res, next) {
     const serverTime = new Date().toTimeString();
@@ -7,4 +7,4 @@ router.get('/', function(req, res, next) {
     res.send(serverTime);
 });
 
-module.exports = router;
+export default router;

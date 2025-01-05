@@ -1,6 +1,6 @@
-var express = require('express');
-var router = express.Router();
-const { listUserNames, getUserByName } = require('../public/javascripts/utils/users.js');
+import express from 'express';
+const router = express.Router();
+import { listUserNames, getUserByName } from '../public/javascripts/utils/users.js';
 
 // Select user by name
 router.get('/select', function(req, res, next) {
@@ -15,4 +15,4 @@ router.get('/list', function(req, res, next) {
   res.json({ userNames });
 });
 
-module.exports = router;
+export default router;

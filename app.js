@@ -1,17 +1,20 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var cors = require('cors')
+import createError from 'http-errors';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import cors from 'cors';
 
-var indexRouter = require('./routes/index');
-var listEventsRouter = require('./routes/listEvents');
-var eventRSVPRouter = require('./routes/eventRSVP');
-var pendingJobsRouter = require('./routes/pendingJobs');
-var serverTimeRouter = require('./routes/serverTime');
+import indexRouter from './routes/index.js';
+import listEventsRouter from './routes/listEvents.js';
+import eventRSVPRouter from './routes/eventRSVP.js';
+import pendingJobsRouter from './routes/pendingJobs.js';
+import serverTimeRouter from './routes/serverTime.js';
 
-var app = express();
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -48,4 +51,4 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-module.exports = app;
+export default app;
