@@ -17,8 +17,9 @@ router.get('/', (req, res) => {
  * @param {string} eventId - The ID of the event to RSVP for
  * @param {number} extras - The number of extra guests to add
  * @param {string} user - The user's name on whose behalf the RSVP is made
+ * @param {string} rsvpResponse - The RSVP response, either 'YES' or 'NO'
  */
-const createRequestBody = (eventId, extras, user) => {
+const createRequestBody = (eventId, extras, user, rsvpResponse = 'YES') => {
   // Construct the body object for the Meetup GQL mutation
   const bodyObject = {
     operationName: 'rsvpToEvent',
@@ -26,7 +27,7 @@ const createRequestBody = (eventId, extras, user) => {
       input: {
         eventId: eventId,
         guestsCount: +extras,
-        response: 'YES',
+        response: rsvpResponse,
         proEmailShareOptin: false,
         proSurveyAnswers: []
       }
@@ -86,7 +87,7 @@ const LDcontext = {
 // Probably could use a little refactoring/cleanup
 router.post('/', (req, res) => {
   // Get the form data from the request body
-  const { eventId, eventDateObj, userName, extras } = req.body;
+  const { eventId, eventDateObj, userName, extras, action } = req.body;
 
   // Use the user name to get the user details
   const user = users[userName];
@@ -114,6 +115,9 @@ router.post('/', (req, res) => {
   // 'Request received' confirmation message
   console.log(`RSVP to event ID: ${eventId} on behalf of ${userName} and ${extras} of his extra buddies. It will execute at ${testMode ? 'immediately' : humanDate}!`);
 
+  // Decide if we are adding or removing a user from an event
+  const rsvpResponse = action === 'remove' ? 'NO' : 'YES';
+
   // Schedule the cron job
   const jobName = `${userName} | ${
     testMode
@@ -128,7 +132,7 @@ router.post('/', (req, res) => {
     try {
       const response = await axios.post(
         'https://www.meetup.com/gql',
-        createRequestBody(eventId, extras, user),
+        createRequestBody(eventId, extras, user, rsvpResponse),
         {
           headers: {
             'accept': '*/*',
