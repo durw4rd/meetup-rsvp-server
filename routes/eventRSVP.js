@@ -101,6 +101,8 @@ router.post('/', (req, res) => {
   let rsvpDate = false;
   if (testMode) {
     rsvpDate = new Date(Date.now() + 5000);
+  } else if (action === 'remove') {
+    rsvpDate = new Date(Date.now() + 2500); 
   } else {
     eventDate.setDate(eventDate.getDate() - 7);
     eventDate.setHours(eventDate.getHours() + timeOffset);
