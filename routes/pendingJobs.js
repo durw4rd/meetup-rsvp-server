@@ -1,12 +1,11 @@
 import express from 'express';
-const router = express.Router();
 import schedule from 'node-schedule';
-import axios from 'axios';
 
-router.get('/', function(req, res, next) {
+const router = express.Router();
+
+router.get('/', (req, res) => {
     const jobList = schedule.scheduledJobs;
     const jobNames = Object.keys(jobList);
-    // console.log(Object.keys(jobList).length);
     console.log(Object.keys(jobList));
   
     res.json({ 
@@ -15,7 +14,7 @@ router.get('/', function(req, res, next) {
     });
 });
 
-router.post('/delete', function(req, res, next) {
+router.post('/delete', (req, res) => {
   const jobList = schedule.scheduledJobs;
   const { jobName } = req.body;
   

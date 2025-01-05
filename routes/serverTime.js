@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-router.get('/', function(req, res, next) {
+router.get('/', (req, res) => {
     const serverTime = new Date().toTimeString();
     // const serverTimeFormated = serverTime.toLocaleString('nl-NL');
     res.send(serverTime);

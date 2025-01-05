@@ -1,10 +1,11 @@
 import express from 'express';
-const router = express.Router();
 import dotenv from 'dotenv';
+
 dotenv.config();
+const router = express.Router();
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res) => {
   const serverTime = new Date();
   const serverTimeFormated = serverTime.toLocaleString('nl-NL');
   const localTimeFormated = serverTime.toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam'});

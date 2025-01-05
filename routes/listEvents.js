@@ -1,9 +1,10 @@
 import express from 'express';
-const router = express.Router();
 import axios from 'axios';
 import users from '../public/javascripts/utils/userList.js';
 
-router.get('/:numberEvents', function(req, res, next) {
+const router = express.Router();
+
+router.get('/:numberEvents', async (req, res) => {
     const { numberEvents } = req.params;
 
     const userName = req.query.userName || "Michal"; // OR is for for backwards compatibility (WHERE/WHY?)
