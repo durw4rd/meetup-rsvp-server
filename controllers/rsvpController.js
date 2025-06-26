@@ -65,6 +65,52 @@ class RSVPController {
   }
 
   /**
+   * Get executed jobs
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  getExecutedJobs(req, res) {
+    try {
+      const { limit = 50 } = req.query;
+      const executedJobs = schedulingService.getExecutedJobs(parseInt(limit));
+      
+      res.json({ 
+        message: 'Listing executed jobs.',
+        jobs: executedJobs,
+        count: executedJobs.length
+      });
+    } catch (error) {
+      console.error('Error in getExecutedJobs controller:', error);
+      res.status(500).json({ 
+        error: 'Failed to get executed jobs',
+        message: error.message 
+      });
+    }
+  }
+
+  /**
+   * Get job status summary (pending and executed jobs)
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  getJobStatusSummary(req, res) {
+    try {
+      const summary = schedulingService.getJobStatusSummary();
+      
+      res.json({ 
+        message: 'Job status summary.',
+        summary
+      });
+    } catch (error) {
+      console.error('Error in getJobStatusSummary controller:', error);
+      res.status(500).json({ 
+        error: 'Failed to get job status summary',
+        message: error.message 
+      });
+    }
+  }
+
+  /**
    * Cancel a job
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object

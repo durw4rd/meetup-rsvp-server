@@ -10,6 +10,7 @@ class SchedulingService {
   constructor() {
     this.testMode = false;
     this.timeOffset = 0;
+    this.executedJobs = []; // Track executed jobs
   }
 
   /**
@@ -52,7 +53,7 @@ class SchedulingService {
 
     // Schedule the job
     schedule.scheduleJob(jobName, rsvpDate, async () => {
-      await this.executeRSVP(eventId, userName, extras, cookieHeader, rsvpResponse);
+      await this.executeRSVP(eventId, userName, extras, cookieHeader, rsvpResponse, jobName);
     });
 
     return {
@@ -69,20 +70,45 @@ class SchedulingService {
    * @param {number} extras - Number of extra guests
    * @param {string} cookieHeader - User's cookie header
    * @param {string} rsvpResponse - RSVP response ('YES' or 'NO')
+   * @param {string} jobName - Name of the executed job
    */
-  async executeRSVP(eventId, userName, extras, cookieHeader, rsvpResponse) {
+  async executeRSVP(eventId, userName, extras, cookieHeader, rsvpResponse, jobName) {
     console.log(`Responding to ${eventId} for ${userName} and ${extras} extra buddies.`);
+
+    const executedJob = {
+      jobName,
+      eventId,
+      userName,
+      extras,
+      rsvpResponse,
+      executedAt: new Date().toISOString(),
+      status: 'pending'
+    };
 
     try {
       const response = await meetupService.rsvpToEvent(eventId, extras, cookieHeader, rsvpResponse);
       
       if (response.data?.rsvp?.errors === null) {
         console.log('Mission accomplished!');
+        executedJob.status = 'success';
+        executedJob.result = 'RSVP completed successfully';
       } else {
         console.log('RSVP completed with errors:', response.data?.rsvp?.errors);
+        executedJob.status = 'error';
+        executedJob.result = response.data?.rsvp?.errors || 'Unknown error';
       }
     } catch (error) {
       console.error('Error executing RSVP:', error);
+      executedJob.status = 'error';
+      executedJob.result = error.message || 'Network error';
+    }
+
+    // Add to executed jobs list
+    this.executedJobs.push(executedJob);
+    
+    // Keep only the last 100 executed jobs to prevent memory issues
+    if (this.executedJobs.length > 100) {
+      this.executedJobs = this.executedJobs.slice(-100);
     }
   }
 
@@ -93,6 +119,35 @@ class SchedulingService {
   getScheduledJobs() {
     const jobList = schedule.scheduledJobs;
     return Object.keys(jobList);
+  }
+
+  /**
+   * Get executed jobs
+   * @param {number} limit - Maximum number of jobs to return (default: 50)
+   * @returns {Array} Array of executed job objects
+   */
+  getExecutedJobs(limit = 50) {
+    return this.executedJobs.slice(-limit).reverse(); // Return most recent first
+  }
+
+  /**
+   * Get job status summary
+   * @returns {Object} Summary of pending and executed jobs
+   */
+  getJobStatusSummary() {
+    const pendingJobs = this.getScheduledJobs();
+    const executedJobs = this.getExecutedJobs(10); // Get last 10 executed jobs
+    
+    return {
+      pending: {
+        count: pendingJobs.length,
+        jobs: pendingJobs
+      },
+      executed: {
+        count: this.executedJobs.length,
+        recent: executedJobs
+      }
+    };
   }
 
   /**

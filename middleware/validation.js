@@ -43,6 +43,31 @@ export const validateNumberOfEvents = (req, res, next) => {
 };
 
 /**
+ * Validate event ID parameter
+ */
+export const validateEventId = (req, res, next) => {
+  const { eventId } = req.params;
+  
+  if (!eventId) {
+    return res.status(400).json({ 
+      error: 'Event ID is required',
+      field: 'eventId'
+    });
+  }
+  
+  // Basic validation - event ID should be a string with reasonable length
+  if (typeof eventId !== 'string' || eventId.length < 1 || eventId.length > 50) {
+    return res.status(400).json({ 
+      error: 'Invalid event ID format',
+      field: 'eventId',
+      message: 'Event ID must be a valid string.'
+    });
+  }
+  
+  next();
+};
+
+/**
  * Validate RSVP request body
  */
 export const validateRSVPRequest = (req, res, next) => {
