@@ -1,30 +1,11 @@
 import express from 'express';
-import schedule from 'node-schedule';
+import { validateJobDeletion } from '../middleware/validation.js';
+import rsvpController from '../controllers/rsvpController.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    const jobList = schedule.scheduledJobs;
-    const jobNames = Object.keys(jobList);
-    console.log(Object.keys(jobList));
-  
-    res.json({ 
-      message: 'Listing pending jobs.', 
-      jobs: jobNames
-    });
-});
+router.get('/', rsvpController.getPendingJobs);
 
-router.post('/delete', (req, res) => {
-  const jobList = schedule.scheduledJobs;
-  const { jobName } = req.body;
-  
-  try {
-    jobList[jobName].cancel();
-  } catch {(e => console.log(e))}
-
-  res.json({ 
-      message: `Received delete request for ${jobName}`, 
-    });
-});
+router.post('/delete', validateJobDeletion, rsvpController.cancelJob);
 
 export default router;

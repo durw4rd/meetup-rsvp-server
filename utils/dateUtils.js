@@ -1,0 +1,59 @@
+import config from '../config/index.js';
+
+/**
+ * Format a date object into a human-readable string
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string
+ */
+export const formatDateHuman = (date) => {
+  const weekDays = config.timeFormat.weekDays;
+  const months = config.timeFormat.months;
+  
+  const day = weekDays[date.getDay()];
+  const dateNum = date.getDate();
+  const month = months[date.getMonth()];
+  const hour = date.getHours();
+  
+  return `${day}, ${dateNum} ${month}, ${hour}:00 UTC`;
+};
+
+/**
+ * Calculate RSVP date based on event date and configuration
+ * @param {Date} eventDate - The event date
+ * @param {boolean} testMode - Whether test mode is enabled
+ * @param {string} action - The action type ('remove' or 'add')
+ * @param {number} timeOffset - Time offset in hours
+ * @returns {Date} The calculated RSVP date
+ */
+export const calculateRSVPDate = (eventDate, testMode, action, timeOffset = 0) => {
+  if (testMode) {
+    return new Date(Date.now() + config.scheduling.defaultTestDelay);
+  }
+  
+  if (action === 'remove') {
+    return new Date(Date.now() + config.scheduling.defaultRemoveDelay);
+  }
+  
+  const rsvpDate = new Date(eventDate);
+  rsvpDate.setDate(rsvpDate.getDate() - config.scheduling.defaultAdvanceDays);
+  rsvpDate.setHours(rsvpDate.getHours() + timeOffset);
+  
+  return rsvpDate;
+};
+
+/**
+ * Create a job name for scheduling
+ * @param {string} userName - The user's name
+ * @param {Date} rsvpDate - The RSVP date
+ * @param {boolean} testMode - Whether test mode is enabled
+ * @param {number} extras - Number of extra guests
+ * @returns {string} The job name
+ */
+export const createJobName = (userName, rsvpDate, testMode, extras) => {
+  if (testMode) {
+    return `${userName} | TEST MODE | ${rsvpDate.getHours()}:00 UTC | Extras: ${extras}`;
+  }
+  
+  const formattedDate = formatDateHuman(rsvpDate);
+  return `${userName} | ${formattedDate} | Extras: ${extras}`;
+}; 
