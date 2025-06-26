@@ -46,7 +46,7 @@ class SchedulingService {
     const eventDate = new Date(eventDateObj);
     const rsvpDate = calculateRSVPDate(eventDate, this.testMode, action, this.timeOffset);
     const rsvpResponse = action === 'remove' ? 'NO' : 'YES';
-    const jobName = createJobName(userName, rsvpDate, this.testMode, extras);
+    const jobName = createJobName(userName, eventDate, this.testMode, extras);
 
     // Log the scheduling
     console.log(`RSVP to event ID: ${eventId} on behalf of ${userName} and ${extras} extra buddies. It will execute at ${this.testMode ? 'immediately' : rsvpDate}!`);
@@ -145,12 +145,93 @@ class SchedulingService {
   }
 
   /**
-   * Get all scheduled jobs
-   * @returns {Array} Array of job names
+   * Get all scheduled jobs with detailed information
+   * @returns {Array} Array of job objects with details
    */
   getScheduledJobs() {
     const jobList = schedule.scheduledJobs;
-    return Object.keys(jobList);
+    const jobs = [];
+    
+    for (const [jobName, job] of Object.entries(jobList)) {
+      try {
+        // Parse job name to extract information
+        const jobInfo = this.parseJobName(jobName);
+        
+        jobs.push({
+          jobName,
+          scheduledFor: job.nextInvocation(),
+          ...jobInfo
+        });
+      } catch (error) {
+        console.error(`Error parsing job ${jobName}:`, error);
+        // Fallback to basic info
+        jobs.push({
+          jobName,
+          scheduledFor: job.nextInvocation(),
+          userName: 'Unknown',
+          extras: 0,
+          rsvpResponse: 'Unknown'
+        });
+      }
+    }
+    
+    return jobs;
+  }
+
+  /**
+   * Parse job name to extract user and event information
+   * @param {string} jobName - The job name to parse
+   * @returns {Object} Parsed job information
+   */
+  parseJobName(jobName) {
+    // Handle test mode job names: userName Mon 7 Jul _TEST_MODE
+    if (jobName.includes('_TEST_MODE')) {
+      const parts = jobName.split(' ');
+      if (parts.length >= 4) {
+        const userName = parts[0];
+        const day = parts[1];
+        const date = parts[2];
+        const month = parts[3];
+        
+        return {
+          userName,
+          eventDate: `${day} ${date} ${month}`,
+          extras: 0,
+          rsvpResponse: 'YES',
+          isTestMode: true
+        };
+      }
+    }
+    
+    // Handle regular job names: userName Mon 7 Jul Extras: 0
+    if (jobName.includes('Extras:')) {
+      const parts = jobName.split(' ');
+      if (parts.length >= 5) {
+        const userName = parts[0];
+        const day = parts[1];
+        const date = parts[2];
+        const month = parts[3];
+        const extrasMatch = jobName.match(/Extras: (\d+)/);
+        const extras = extrasMatch ? parseInt(extrasMatch[1]) : 0;
+        
+        return {
+          userName,
+          eventDate: `${day} ${date} ${month}`,
+          extras,
+          rsvpResponse: 'YES',
+          isTestMode: false
+        };
+      }
+    }
+    
+    // Fallback for unknown format
+    return {
+      userName: 'Unknown',
+      eventDate: 'Unknown',
+      extras: 0,
+      rsvpResponse: 'Unknown',
+      isTestMode: false
+    };
   }
 
   /**

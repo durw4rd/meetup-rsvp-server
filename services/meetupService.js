@@ -322,6 +322,7 @@ class MeetupService {
    */
   formatEvents(events) {
     return events.map((event) => {
+      // Create Date object from the Meetup API dateTime
       const eventDateObj = new Date(event.node.dateTime);
       
       return {

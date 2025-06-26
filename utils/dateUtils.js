@@ -9,12 +9,31 @@ export const formatDateHuman = (date) => {
   const weekDays = config.timeFormat.weekDays;
   const months = config.timeFormat.months;
   
-  const day = weekDays[date.getDay()];
-  const dateNum = date.getDate();
-  const month = months[date.getMonth()];
-  const hour = date.getHours();
+  // Use UTC methods to ensure consistent timezone handling
+  const day = weekDays[date.getUTCDay()];
+  const dateNum = date.getUTCDate();
+  const month = months[date.getUTCMonth()];
+  const hour = date.getUTCHours();
+  const minute = date.getUTCMinutes();
   
-  return `${day}, ${dateNum} ${month}, ${hour}:00 UTC`;
+  return `${day}, ${dateNum} ${month}, ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} UTC`;
+};
+
+/**
+ * Format event date in "Mon 7 Jul" format
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string
+ */
+export const formatEventDate = (date) => {
+  const weekDays = config.timeFormat.weekDays;
+  const months = config.timeFormat.months;
+  
+  // Use UTC methods to ensure consistent timezone handling
+  const day = weekDays[date.getUTCDay()];
+  const dateNum = date.getUTCDate();
+  const month = months[date.getUTCMonth()];
+  
+  return `${day} ${dateNum} ${month}`;
 };
 
 /**
@@ -34,9 +53,16 @@ export const calculateRSVPDate = (eventDate, testMode, action, timeOffset = 0) =
     return new Date(Date.now() + config.scheduling.defaultRemoveDelay);
   }
   
-  const rsvpDate = new Date(eventDate);
-  rsvpDate.setDate(rsvpDate.getDate() - config.scheduling.defaultAdvanceDays);
-  rsvpDate.setHours(rsvpDate.getHours() + timeOffset);
+  // Create a new Date object to avoid mutating the original
+  const rsvpDate = new Date(eventDate.getTime());
+  
+  // Subtract 7 days while preserving the exact time
+  rsvpDate.setUTCDate(rsvpDate.getUTCDate() - config.scheduling.defaultAdvanceDays);
+  
+  // Apply time offset if provided
+  if (timeOffset !== 0) {
+    rsvpDate.setUTCHours(rsvpDate.getUTCHours() + timeOffset);
+  }
   
   return rsvpDate;
 };
@@ -44,25 +70,19 @@ export const calculateRSVPDate = (eventDate, testMode, action, timeOffset = 0) =
 /**
  * Create a job name for scheduling
  * @param {string} userName - The user's name
- * @param {Date} rsvpDate - The RSVP date
+ * @param {Date} eventDate - The event date (not RSVP date)
  * @param {boolean} testMode - Whether test mode is enabled
  * @param {number} extras - Number of extra guests
  * @returns {string} The job name
  */
-export const createJobName = (userName, rsvpDate, testMode, extras) => {
+export const createJobName = (userName, eventDate, testMode, extras) => {
+  const eventDateFormatted = formatEventDate(eventDate);
+  
   if (testMode) {
-    const testTime = rsvpDate.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    return `${userName}_${rsvpDate.toISOString()}_test_${extras}`;
+    return `${userName} ${eventDateFormatted} _TEST_MODE`;
   }
   
-  const formattedDate = formatDateHuman(rsvpDate);
-  return `${userName} | ${formattedDate} | Extras: ${extras}`;
+  return `${userName} ${eventDateFormatted} Extras: ${extras}`;
 };
 
 /**
