@@ -51,7 +51,14 @@ export const calculateRSVPDate = (eventDate, testMode, action, timeOffset = 0) =
  */
 export const createJobName = (userName, rsvpDate, testMode, extras) => {
   if (testMode) {
-    return `${userName} | TEST MODE | ${rsvpDate.getHours()}:00 UTC | Extras: ${extras}`;
+    const testTime = rsvpDate.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    return `${userName}_${rsvpDate.toISOString()}_test_${extras}`;
   }
   
   const formattedDate = formatDateHuman(rsvpDate);

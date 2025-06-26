@@ -88,19 +88,51 @@ class SchedulingService {
     try {
       const response = await meetupService.rsvpToEvent(eventId, extras, cookieHeader, rsvpResponse);
       
-      if (response.data?.rsvp?.errors === null) {
+      // Check for RSVP errors in the response
+      if (response.data?.rsvp?.errors && response.data.rsvp.errors.length > 0) {
+        console.log('RSVP completed with errors:', response.data.rsvp.errors);
+        executedJob.status = 'error';
+        
+        // Extract error details
+        const error = response.data.rsvp.errors[0];
+        executedJob.result = {
+          code: error.code || 'unknown_error',
+          field: error.field,
+          message: error.message || 'Unknown error occurred',
+          fullError: error
+        };
+      } else if (response.data?.rsvp?.errors === null) {
         console.log('Mission accomplished!');
         executedJob.status = 'success';
         executedJob.result = 'RSVP completed successfully';
       } else {
-        console.log('RSVP completed with errors:', response.data?.rsvp?.errors);
+        console.log('Unexpected response structure:', response.data);
         executedJob.status = 'error';
-        executedJob.result = response.data?.rsvp?.errors || 'Unknown error';
+        executedJob.result = {
+          code: 'unexpected_response',
+          message: 'Unexpected response structure from Meetup API',
+          fullError: response.data
+        };
       }
     } catch (error) {
       console.error('Error executing RSVP:', error);
       executedJob.status = 'error';
-      executedJob.result = error.message || 'Network error';
+      
+      // Try to extract error details from the error response
+      if (error.response?.data?.errors && error.response.data.errors.length > 0) {
+        const apiError = error.response.data.errors[0];
+        executedJob.result = {
+          code: apiError.code || 'api_error',
+          message: apiError.message || error.message,
+          fullError: apiError
+        };
+      } else {
+        executedJob.result = {
+          code: 'network_error',
+          message: error.message || 'Network error occurred',
+          fullError: error
+        };
+      }
     }
 
     // Add to executed jobs list
